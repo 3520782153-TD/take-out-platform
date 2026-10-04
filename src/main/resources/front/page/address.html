@@ -25,7 +25,7 @@
                 </div>
             </div>
             <div class="divContent">
-                <div class="divItem" v-for="(item,index) in addressList" :key="index" @click.capture="itemClick(item)">
+                <div class="divItem" v-for="(item,index) in addressList" :key="index" @click="itemClick(item)">
                     <div class="divAddress">
                         <span :class="{spanCompany:item.label === '公司',spanHome:item.label === '家',spanSchool:item.label === '学校'}">{{item.label}}</span>
                         {{item.detail}}
@@ -137,18 +137,21 @@
                         if(item.id){
                             const res = await setDefaultAddressApi({id:item.id})
                             if(res.code === 1){
-                            this.initData()
+                                await this.initData()
+                                return true
                             }else{
                                 this.$message.error(res.msg)
                             }
                         }
+                        return false
                     },
-                    itemClick(item){
+                    async itemClick(item){
                         const url = document.referrer
                         //表示是从订单页面跳转过来的
-                        if(url.includes('order')){
-                            this.setDefaultAddress(item)
-                            history.go(-1)
+                        if(url.includes('add-order')){
+                            if(await this.setDefaultAddress(item)){
+                                history.go(-1)
+                            }
                         }
                     }
 

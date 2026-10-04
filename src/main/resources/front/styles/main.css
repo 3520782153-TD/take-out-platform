@@ -597,6 +597,13 @@
   height: 36rem;
 }
 
+#main .dialogCart .divCartContent .divCartItem .divNum .divDishNum {
+  font-size: 15rem;
+  min-width: 18rem;
+  text-align: center;
+  color: #333333;
+}
+
 #main .dialogCart .divCartContent .divCartItem .divSplit {
   width: calc(100% - 64rem);
   position: absolute;

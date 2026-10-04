@@ -462,11 +462,14 @@
             querySetmealById(this.id).then((res) => {
               if (String(res.code) === '1') {
                 this.ruleForm = res.data
-                this.ruleForm.status = res.data.status === '1'
+                this.ruleForm.status = res.data.status == 1
                 this.ruleForm.price = res.data.price / 100
                 this.imageUrl = `/common/download?name=${res.data.image}`
-                this.checkList = res.data.setmealDishes
                 this.dishTable = res.data.setmealDishes
+                this.dishTable.forEach((n) => {
+                  n.dishName = n.name
+                })
+                this.checkList = JSON.parse(JSON.stringify(this.dishTable))
                 this.ruleForm.idType = res.data.categoryId
                 // this.ruleForm.password = ''
               } else {
@@ -500,12 +503,17 @@
 
           // 添加菜品
           openAddDish() {
+            this.checkList = JSON.parse(JSON.stringify(this.dishTable))
             this.seachKey = ''
             this.dialogVisible = true
             //搜索条件清空，菜品重新查询，菜品类别选第一个重新查询
             this.value = ''
             this.keyInd = 0
-            this.getDishList(this.dishType[0].id)
+            if (this.dishType.length > 0) {
+              this.getDishList(this.dishType[0].id)
+            } else {
+              this.dishAddList = []
+            }
           },
           // 取消添加菜品
           handleClose(done) {
@@ -519,11 +527,9 @@
           addTableList() {
             this.dishTable = JSON.parse(JSON.stringify(this.checkList))
             this.dishTable.forEach((n) => {
-              n.copies = 1
+              n.copies = n.copies || 1
             })
             this.dialogVisible = false
-            // 添加处理逻辑清空选中list
-            this.checkList = []
           },
           submitForm(formName, st) {
             this.$refs[formName].validate((valid) => {
@@ -536,7 +542,7 @@
                   name: obj.name,
                   price: obj.price,
                 }))
-                prams.status = this.ruleForm ? 1 : 0
+                prams.status = this.ruleForm.status ? 1 : 0
                 prams.categoryId = this.ruleForm.idType
                 if(prams.setmealDishes.length < 1){
                   this.$message.error('请选择菜品！')
@@ -641,7 +647,9 @@
             getCategoryList({'type':1}).then(res => {
               if (res.code === 1) {
                 this.dishType = res.data
-                this.getDishList(res.data[0].id)
+                if (res.data.length > 0) {
+                  this.getDishList(res.data[0].id)
+                }
               } else {
                 this.$message.error(res.msg)
               }
@@ -657,11 +665,15 @@
                   return
                 }
                 let newArr = res.data;
-                newArr.forEach((n) => {
+                newArr.forEach((n, index) => {
                   n.dishId = n.id
                   n.copies = 1
                   // n.dishCopies = 1
                   n.dishName = n.name
+                  const selected = this.checkedList.find(item => item.dishId === n.dishId)
+                  if (selected) {
+                    newArr[index] = selected
+                  }
                 })
                 this.dishAddList = newArr
               } else {
@@ -675,9 +687,14 @@
             queryDishList({name}).then(res => {
               if (res.code === 1) {
                 let newArr = res.data
-                newArr.forEach((n) => {
+                newArr.forEach((n, index) => {
                   n.dishId = n.id
                   n.dishName = n.name
+                  n.copies = 1
+                  const selected = this.checkedList.find(item => item.dishId === n.dishId)
+                  if (selected) {
+                    newArr[index] = selected
+                  }
                 })
                 this.dishAddList = newArr
               } else {

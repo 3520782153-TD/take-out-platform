@@ -13,7 +13,7 @@
     <!--引入vant样式-->
     <link rel="stylesheet" href="../styles/vant.min.css"/>
     <!--本页面内容的样式-->
-    <link rel="stylesheet" href="./../styles/user.css" />
+    <link rel="stylesheet" href="./../styles/user.css?v=20261005-1" />
 </head>
 <body>
     <div id="user" class="app">
@@ -92,16 +92,8 @@
                         code:''
                     },
                     msgFlag:false,
-                    order:[{
-                        orderTime:'',//下单时间
-                        status:undefined,//订单状态 1已结账，2未结账，3已退单，4已完成，5已取消
-                        orderDetails:[{
-                            name:'',//菜品名称
-                            number:undefined,//数量
-                        }],//明细
-                        amount:undefined,//实收金额
-                        sumNum:0,//菜品总数
-                    }],
+                    userPhone:'',
+                    order:[],
                 }
             },
             computed:{},
@@ -132,18 +124,19 @@
                         page:1,
                         pageSize:1
                     }
-                    const res = await orderPagingApi(params)
-                    if(res.code === 1){
-                        this.order = res.data.records
-                        if(this.order && this.order[0].orderDetails){
-                            let number = 0
-                            this.order[0].orderDetails.forEach(item=>{
-                                number += item.number
+                    try{
+                        const res = await orderPagingApi(params)
+                        if(res.code === 1){
+                            const records = res.data.records || []
+                            records.forEach(order=>{
+                                order.sumNum = (order.orderDetails || []).reduce((sum,item)=>sum + item.number,0)
                             })
-                            this.order[0].sumNum = number
+                            this.order = records
+                        }else{
+                            this.$notify({ type:'warning', message:res.msg});
                         }
-                    }else{
-                        this.$notify({ type:'warning', message:res.msg});
+                    }catch(err){
+                        this.order = []
                     }
                 },
                 getStatus(status){
@@ -153,10 +146,10 @@
                             str =  '待付款'
                         break;
                         case 2:
-                            str =  '正在派送'
+                            str =  '待派送'
                         break;
                         case 3:
-                            str =  '已派送'
+                            str =  '派送中'
                         break;
                         case 4:
                             str =  '已完成'
@@ -181,8 +174,9 @@
                 async toPageLogin(){
                     const res = await loginoutApi()
                     if(res.code === 1){
+                        sessionStorage.removeItem("userPhone")
                         window.requestAnimationFrame(()=>{
-                            window.location.href = '/front/page/login.html'
+                            window.location.replace('/front/page/login.html')
                         }) 
                     }else{
                         this.$notify({ type:'warning', message:res.msg});

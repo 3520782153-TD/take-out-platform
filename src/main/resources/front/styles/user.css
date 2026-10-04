@@ -114,7 +114,13 @@
   margin-right: 5rem;
 }
 
+#user .divLinks .item span {
+  font-size: 15rem;
+  color: #333333;
+}
+
 #user .divLinks .item i {
+  font-size: 14rem;
   position: absolute;
   right: 0;
   top: 50%;

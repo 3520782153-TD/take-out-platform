@@ -52,7 +52,7 @@
       >
         <el-table-column
           type="selection"
-          width="25"
+          width="55"
         ></el-table-column>
         <el-table-column
           prop="name"
@@ -204,7 +204,7 @@
 
           // 删除
           deleteHandle (type, id) {
-            if (type === '批量' && id === null) {
+            if (type === '批量') {
               if (this.checkList.length === 0) {
                 return this.$message.error('请选择删除对象')
               }

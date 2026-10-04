@@ -21,7 +21,7 @@
         <div id="order" class="app">
             <div class="divHead">
                 <div class="divTitle">
-                    <i class="el-icon-arrow-left" @click="goBack"></i>菩提阁
+                    <i class="el-icon-arrow-left" @click="goBack"></i>历史订单
                 </div>
             </div>
             <div class="divBody" v-if="orderList.length > 0">
@@ -80,6 +80,7 @@
                     },
                     orderList:[],
                     loading:false,
+                    fetching:false,
                     finished:false
                 }
             },
@@ -108,26 +109,31 @@
                         this.loading = false;
                         return
                     }
-                    const res = await orderPagingApi(this.paging)
-                    if(res.code === 1){
-                        this.orderList.push(...res.data.records)
-                        let records = res.data.records
-                        if(records && Array.isArray(records)){
+                    if(this.fetching){
+                        return
+                    }
+                    this.fetching = true
+                    this.loading = true
+                    try{
+                        const res = await orderPagingApi(this.paging)
+                        if(res.code === 1){
+                            const records = res.data.records || []
                             records.forEach(item=>{
-                                let number = 0
-                                item.orderDetails.forEach(ele=>{
-                                    number += ele.number
-                                })
-                                item.sumNum = number
+                                item.sumNum = (item.orderDetails || []).reduce((sum,ele)=>sum + ele.number,0)
                             })
+                            this.orderList.push(...records)
+                            if(this.paging.page >= res.data.pages){
+                                this.finished = true;
+                            }
+                            this.paging.page = this.paging.page + 1
+                        }else{
+                            this.$notify({ type:'warning', message:res.msg});
                         }
+                    }catch(err){
+                        //请求异常由响应拦截器提示
+                    }finally{
                         this.loading = false;
-                        if(this.paging.page >= res.data.pages){
-                            this.finished = true;
-                        }
-                        this.paging.page = this.paging.page + 1
-                    }else{
-                        this.$notify({ type:'warning', message:res.msg});
+                        this.fetching = false
                     }
                 },
                 async addOrderAgain(order){
@@ -147,10 +153,10 @@
                             str =  '待付款'
                         break;
                         case 2:
-                            str =  '正在派送'
+                            str =  '待派送'
                         break;
                         case 3:
-                            str =  '已派送'
+                            str =  '派送中'
                         break;
                         case 4:
                             str =  '已完成'

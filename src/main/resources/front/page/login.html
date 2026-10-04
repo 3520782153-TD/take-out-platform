@@ -39,7 +39,7 @@
         <!-- 引入axios -->
         <script src="../../backend/plugins/axios/axios.min.js"></script>
         <script src="./../js/request.js"></script>
-        <script src="./../api/login.js"></script>
+        <script src="./../api/login.js?v=20261004-2"></script>
     </body>
     <script>
         new Vue({
@@ -58,12 +58,17 @@
             created(){},
             mounted(){},
             methods:{
-                getCode(){
+                async getCode(){
                     this.form.code = ''
                     const regex = /^(13[0-9]{9})|(15[0-9]{9})|(17[0-9]{9})|(18[0-9]{9})|(19[0-9]{9})$/;
                     if (regex.test(this.form.phone)) {
                         this.msgFlag = false
-                        this.form.code = (Math.random()*1000000).toFixed(0)
+                        const res = await sendMsgApi({phone:this.form.phone})
+                        if(res.code === 1){
+                            this.$notify({ type:'success', message:res.data});
+                        }else{
+                            this.$notify({ type:'warning', message:res.msg});
+                        }
                     }else{
                         this.msgFlag = true
                     }
@@ -71,7 +76,7 @@
                 async btnLogin(){
                     if(this.form.phone && this.form.code){
                         this.loading = true
-                        const res = await loginApi({phone:this.form.phone})
+                        const res = await loginApi({phone:this.form.phone,code:this.form.code})
                         this.loading = false
                         if(res.code === 1){
                             sessionStorage.setItem("userPhone",this.form.phone)

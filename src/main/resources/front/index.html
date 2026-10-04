@@ -16,7 +16,7 @@
     <!-- 引入样式  -->
     <link rel="stylesheet" href="styles/index.css" />
     <!--本页面内容的样式-->
-    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/main.css?v=20261005-3" />
   </head>
   <body>
     <div id="main" class="app">
@@ -226,7 +226,7 @@
         <script src="../backend/plugins/axios/axios.min.js"></script>
         <script src="./js/request.js"></script>
         <script src="./js/common.js"></script>
-        <script src="./api/main.js"></script>
+        <script src="./api/main.js?v=20261005-2"></script>
   </body>
   <script>
       new Vue({
@@ -295,7 +295,9 @@
           methods:{
             //初始化数据
             initData(){
-              Promise.all([categoryListApi(),cartListApi({})]).then(res=>{
+              Promise.all([categoryListApi(),cartListApi({}).catch(()=>{
+                return {code:1,data:[]}
+              })]).then(res=>{
                 //获取分类数据
                 if(res[0].code === 1){
                   this.categoryList = res[0].data
@@ -379,6 +381,9 @@
               const res = await cartListApi({})
               if(res.code === 1){
                 this.cartData = res.data
+                if(this.cartData.length === 0){
+                  this.cartDialogShow = false
+                }
               }else{
                 this.$notify({ type:'warning', message:res.msg});
               }
